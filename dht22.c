@@ -35,7 +35,7 @@ int DHT22_ReadData(unsigned char *ptr, int ptrPort)
     if(sts != 0) return -50; 
     // Set line to LOW 
     //PORTC &= ~BIT5;
-    sts = WriteLine(1, ptrPort);
+    sts = WriteLine(0, ptrPort);
     if(sts != 0) return -51;   
     // Wait for 1ms
     delay_us(1000);

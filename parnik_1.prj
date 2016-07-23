@@ -7,7 +7,7 @@ A=Ivanov S.V.
 C=Engineering Bay
 D=12.07.2016
 Files=3
-OpenedFiles=6
+OpenedFiles=7
 OF1=main.c
 Active1=1
 DebugOutputListFilesDirectory=Debug\List
@@ -26,17 +26,17 @@ Active0=0
 EditorPanel0=0
 PageIndex0=0
 EditorPanel1=0
-TimeStamp1=1224173400
+TimeStamp1=1224181605
 PageIndex1=1
 OF2=init.c
 Active2=0
 EditorPanel2=0
-TimeStamp2=1224172181
+TimeStamp2=1224182150
 PageIndex2=2
 OF3=dht22.c
 Active3=0
 EditorPanel3=0
-TimeStamp3=1223786247
+TimeStamp3=1224185473
 PageIndex3=3
 F1=main.c
 F2=init.c
@@ -44,7 +44,7 @@ F3=dht22.c
 OF4=dht22.h
 Active4=0
 EditorPanel4=0
-TimeStamp4=1223784646
+TimeStamp4=1224185482
 PageIndex4=4
 OF5=parnik.h
 Active5=0
@@ -56,6 +56,11 @@ Active6=0
 EditorPanel6=0
 TimeStamp6=982086133
 PageIndex6=6
+OF7=C:\cvavr\inc\mega2560.h
+Active7=0
+EditorPanel7=0
+TimeStamp7=982416078
+PageIndex7=7
 [CompilerDebug]
 Chip=ATmega2560
 CPUClock=16000000
@@ -154,7 +159,7 @@ WatchAVR8LAutoVariables=0
 UseEEPROMLocation0=1
 RebuildAll=0
 LinkageInformationPresent=1
-COFFileTimeStamp=1224185073
+COFFileTimeStamp=1224185485
 Build=9
 [DefinedSymbolsDebug]
 Count=0
@@ -542,7 +547,7 @@ Lines=12
 L1=AVRASM: AVR macro assembler 2.1.30 (build 592 Nov  7 2008 12:38:17)
 L2=Copyright (C) 1995-2008 ATMEL Corporation
 L3=
-L4=F:\Work\Projects\15 - Парник\03-Embedded\Parnik_hwr_1v0\Debug\List\parnik_1.asm(5268): No EEPROM data, deleting F:\Work\Projects\15 - Парник\03-Embedded\Parnik_hwr_1v0\Debug\Exe\parnik_1.eep
+L4=F:\Work\Projects\15 - Парник\03-Embedded\Parnik_hwr_1v0\Debug\List\parnik_1.asm(5267): No EEPROM data, deleting F:\Work\Projects\15 - Парник\03-Embedded\Parnik_hwr_1v0\Debug\Exe\parnik_1.eep
 L5=
 L6=ATmega2560 memory use summary [bytes]:
 L7=Segment   Begin    End      Code   Data   Used    Size   Use%
@@ -563,9 +568,9 @@ Row=0
 Column=0
 ScrollPosX=0
 ScrollPosY=0
-TimeStamp=1224173404
+TimeStamp=1224186105
 [BookmarksFoldedCode]
-Files=15
+Files=16
 F1=main.c
 F2=C:\cvavr\inc\1wire.h
 F3=F:\Work\Projects\15 - Парник\03-Embedded\Parnik_hwr_1v0\init.c
@@ -581,12 +586,13 @@ F12=C:\cvavr\inc\delay.h
 F13=C:\cvavr\inc\math.h
 F14=dht22.h
 F15=C:\cvavr\inc\mega2560_bits.h
+F16=C:\cvavr\inc\mega2560.h
 [Bookmarks1]
-TimeStamp=1224173400
-Row=46
-Column=120
+TimeStamp=1224181605
+Row=20
+Column=31
 ScrollPosX=0
-ScrollPosY=24
+ScrollPosY=12
 BK0=-1
 BK1=-1
 BK2=-1
@@ -740,11 +746,11 @@ BK7=-1
 BK8=-1
 BK9=-1
 [Bookmarks10]
-TimeStamp=1223786247
-Row=68
-Column=18
+TimeStamp=1224185473
+Row=33
+Column=27
 ScrollPosX=0
-ScrollPosY=9
+ScrollPosY=27
 BK0=-1
 BK1=-1
 BK2=-1
@@ -756,11 +762,11 @@ BK7=-1
 BK8=-1
 BK9=-1
 [Bookmarks11]
-TimeStamp=1224172181
-Row=29
-Column=116
+TimeStamp=1224182150
+Row=33
+Column=31
 ScrollPosX=0
-ScrollPosY=6
+ScrollPosY=12
 BK0=-1
 BK1=-1
 BK2=-1
@@ -808,11 +814,11 @@ BK9=-1
 [FoldedCode13]
 Blocks=0
 [Bookmarks14]
-TimeStamp=1223784646
-Row=11
-Column=0
+TimeStamp=1224185482
+Row=7
+Column=38
 ScrollPosX=0
-ScrollPosY=0
+ScrollPosY=7
 BK0=-1
 BK1=-1
 BK2=-1
@@ -823,18 +829,12 @@ BK6=-1
 BK7=-1
 BK8=-1
 BK9=-1
-[FoldedCode1]
-Blocks=0
-[FoldedCode11]
-Blocks=0
-[FoldedCode10]
-Blocks=0
 [Bookmarks15]
 TimeStamp=982086133
-Row=213
-Column=11
+Row=11
+Column=34
 ScrollPosX=0
-ScrollPosY=189
+ScrollPosY=378
 BK0=-1
 BK1=-1
 BK2=-1
@@ -845,12 +845,6 @@ BK6=-1
 BK7=-1
 BK8=-1
 BK9=-1
-[FoldedCode15]
-Blocks=0
-[FoldedCode9]
-Blocks=0
-[FoldedCode14]
-Blocks=0
 [Header2]
 Files=5
 F1=C:\cvavr\inc\mega2560.h
@@ -877,3 +871,33 @@ F2=C:\cvavr\inc\mega2560_bits.h
 F3=C:\cvavr\inc\delay.h
 F4=parnik.h
 F5=dht22.h
+[FoldedCode1]
+Blocks=0
+[FoldedCode11]
+Blocks=0
+[FoldedCode10]
+Blocks=0
+[Bookmarks16]
+TimeStamp=982416078
+Row=11
+Column=10
+ScrollPosX=0
+ScrollPosY=0
+BK0=-1
+BK1=-1
+BK2=-1
+BK3=-1
+BK4=-1
+BK5=-1
+BK6=-1
+BK7=-1
+BK8=-1
+BK9=-1
+[FoldedCode16]
+Blocks=0
+[FoldedCode15]
+Blocks=0
+[FoldedCode9]
+Blocks=0
+[FoldedCode14]
+Blocks=0
