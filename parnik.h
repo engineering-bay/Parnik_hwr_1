@@ -1,4 +1,19 @@
-#define MAX_1W_DEVICES  2
+/* HW Config:
+Arduino pin     MCU pin         LCD pin     Func
+PWM5            PE3            --          LCD_BACKLIGHT
+PWM6            PH3            14          D7
+PWM7            PH4            13          D6
+PWM8            PH5            12          D5
+PWM10           PB4            11          D4
+PWM11           PB5            6           E
+PWM12           PB6            4           RS
+
+PWM9            PH6            --          GSM_KEY
+
+SCL             PD0            --          RS485_DIR
+*/
+
+
 #define BIT0    0x01
 #define BIT1    0x02
 #define BIT2    0x04
@@ -11,4 +26,5 @@
 #define RELAY_ON    1
 #define RELAY_OFF   0
 
+void LogicStep(void);
 int RelayCmd(unsigned char RNum, unsigned char RCmd);

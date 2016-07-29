@@ -12,6 +12,7 @@ extern void USART_Transmit( unsigned char data );
 extern unsigned int read_adc(unsigned char adc_input);
 
 // Declare your global variables here
+float TempIntThrLow = 20.0, TempIntThrHigh = 60.0, TempExtThrLow = 10.0;
 float HumInt = -99.9, TempInt = -99.9, HumExt = -99.9, TempExt = -99.9;
 
 void main(void)
@@ -23,6 +24,13 @@ char str[50];
 
 MCU_init();
 delay_ms(2000);
+
+PORTE.3 = 1;
+lcd_clear();
+lcd_puts("  Parnik  2016");
+//lcd_gotoxy(0, 0);
+//lcd_putchar('C');
+
 n = 0;
 while(1)
     {
@@ -37,15 +45,26 @@ while(1)
         adc_res = read_adc(0);
         tmp1 = DHT22_GetTempHum(&HumInt, &TempInt, INT_SENSOR_ADDR);
         tmp2 = DHT22_GetTempHum(&HumExt, &TempExt, EXT_SENSOR_ADDR);
-        sprintf(str, "[%2d] R[%2d,%2d] H1[%5.1f] T1[%5.1f] H2[%5.1f] T2[%5.1f]\n\r", n, tmp1, tmp2, HumInt, TempInt, HumExt, TempExt);
+        sprintf(str, "[%2d] H1[%5.1f] T1[%5.1f] H2[%5.1f] T2[%5.1f] ADC[%d]\n\r", n, HumInt, TempInt, HumExt, TempExt, adc_res);
         for(i = 0; i < strlen(str); i++)
         {    
             USART_Transmit(str[i]);    
         }
         n++;
         if(n > 99) n = 0;
+        LogicStep();
         PORTB &= ~BIT7;
         delay_ms(2000);        
+    }
+}
+
+void LogicStep(void)
+{
+    if(TempInt > TempIntThrHigh)
+    {
+         RelayCmd(4, RELAY_ON);
+         delay_ms(15000);
+         RelayCmd(4, RELAY_OFF);
     }
 }
 
