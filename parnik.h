@@ -23,8 +23,24 @@ SCL             PD0            --          RS485_DIR
 #define BIT6    0x40
 #define BIT7    0x80
 
+#define LCD_STATE_NUM               2
+#define LCD_STATE_COMMON            0
+#define LCD_STATE_TH                1
+#define LCD_STATE_SW                2
+
+#define SOILSENSOR_LOW              1023
+#define SOILSENSOR_HIGH             250
+#define SOILSENSOR_DELTA            (SOILSENSOR_LOW - SOILSENSOR_HIGH)
+
+#define ULTRASONIC_SOUNDVELOCITY    0.0343f
+#define ULTRASONIC_DELAYSTEP        10
+#define ULTRASONIC_DELAYTIMEOUT     10000
+
+#define WINDOW_SIZE                 20
+
 #define RELAY_ON    1
 #define RELAY_OFF   0
 
 void LogicStep(void);
 int RelayCmd(unsigned char RNum, unsigned char RCmd);
+float GetUltrasonicDistance(void);
