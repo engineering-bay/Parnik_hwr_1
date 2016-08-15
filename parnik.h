@@ -11,6 +11,14 @@ PWM12           PB6            4           RS
 PWM9            PH6            --          GSM_KEY
 
 SCL             PD0            --          RS485_DIR
+
+A8              PK0            --          Keypad-1Row
+A9              PK1            --          Keypad-2Row
+A10             PK2                        Keypad-3Row
+A11             PK3                        Keypad-4Row
+A12             PK4                        Keypad-1Col
+A13             PK5                        Keypad-2Col
+A14             PK6                        Keypad-3Col
 */
 
 
@@ -41,6 +49,15 @@ SCL             PD0            --          RS485_DIR
 #define RELAY_ON    1
 #define RELAY_OFF   0
 
+#define TIMERTICK_VAL_SEC           0.009984f
+#define TIMERTICK_MAX_DAY_TS        86400
+#define WATERING_COOLDOWN           3600
+#define VENT_COOLDOWN               3600
+
+
 void LogicStep(void);
 int RelayCmd(unsigned char RNum, unsigned char RCmd);
 float GetUltrasonicDistance(void);
+void SendToRS485(char *ptr, int len);
+int KeyPressed(void);
+int TimestampToTime(long int TS, char *ptrStr);
