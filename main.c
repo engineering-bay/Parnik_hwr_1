@@ -5,13 +5,15 @@
 // Alphanumeric LCD functions
 #include <alcd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <parnik.h>
 #include <dht22.h>
+#include <gsm.h>
 
 extern void MCU_init(void);
-extern void USART0_Transmit( unsigned char data );
-extern void USART1_Transmit( unsigned char data );
 extern unsigned int read_adc(unsigned char adc_input);
+extern char rx_buffer0[];
+extern int rx_index0;
 
 // Declare your global variables here
 float TimeStamp = 3600.0;
@@ -27,7 +29,6 @@ float Soil[WINDOW_SIZE];
 void main(void)
 {
 int i, t, n, tmp1, tmp2, key;
-//int IntSensorPortAdress = 0xC5, ExtSensorPortAdress = 0xC3;
 unsigned int adc_res;
 float tw, ts;
 float WaterTankHeightSM = WaterTankHeightEmptySM;
@@ -35,23 +36,30 @@ char str1[20], str2[20];
 unsigned char str485[60];
 
 MCU_init();
-delay_ms(100);
+delay_ms(10);
 #asm("sei")
 
-PORTE |= BIT3;
+// Turn LCD backlight ON
+LCD_Backlight(LCD_BL_ON);
 RelayCmd(8, RELAY_ON);
 delay_ms(1000);
 RelayCmd(8, RELAY_OFF);
-//PORTE &= ~BIT3;
-//PORTK |= (BIT4|BIT5|BIT6);
 
+GSM_PowerOn();
 lcd_clear();
+delay_ms(5000);
+// Задаем скорость обмена 19200
+GSM_SendATCommand("AT+IPR=19200\r\n");
+i = GSM_ReadAnswer(str2, 16);
+// Выключаем эхо
+GSM_SendATCommand("ATE0\r\n");
+i = GSM_ReadAnswer(str2, 16);
+
+SyncTime();
 
 n = 0;
 while(1)
-    {
-        PORTB |= BIT7;
-        
+    {       
         tmp1 = DHT22_GetTempHum(&HumInt, &TempInt, INT_SENSOR_ADDR);
         tmp2 = DHT22_GetTempHum(&HumExt, &TempExt, EXT_SENSOR_ADDR);
         ts = 0;
@@ -111,18 +119,27 @@ while(1)
         n++;
         if(n > LCD_STATE_NUM) n = 0;
         LogicStep();
-        PORTB &= ~BIT7;
-        //delay_ms(2000);
+
         for(i = 0; i < 10; i++)
         {
             key = KeyPressed();
             if(key != -1)
-            { 
-                if(key == 11) PORTE ^= BIT3;
+            {
+                if(key == 10) 
+                {
+                    // Enter menu
+                    //
+                } 
+                if(key == 11) 
+                {
+                    // Swith LCD backlight state
+                    LCD_Backlight(LCD_BL_SWITCH);
+                }
                 if(key == 1)
                 {
                     // Принудительный полив
                     WateringLastTS = (long int)TimeStamp;
+                    LCD_Backlight(LCD_BL_ON);
                     sprintf(str1, "WATERING:");
                     sprintf(str2, "[S]: PROCESS");
                     lcd_clear();
@@ -133,11 +150,13 @@ while(1)
                     RelayCmd(1, RELAY_ON);
                     delay_ms(15000);
                     RelayCmd(1, RELAY_OFF);
+                    LCD_Backlight(LCD_BL_OFF);
                 }
                 if(key == 2)
                 {
                     // Принудительное проветривание
                     VentLastTS = (long int)TimeStamp;
+                    LCD_Backlight(LCD_BL_ON);
                     sprintf(str1, "VENTILATION:");
                     sprintf(str2, "[S]: OPENING");
                     lcd_clear();
@@ -154,10 +173,12 @@ while(1)
                     delay_ms(15000);
                     RelayCmd(5, RELAY_OFF);
                     VentState = 1;
+                    LCD_Backlight(LCD_BL_OFF);
                 }
                 if(key == 3)
                 {
                     // Принудительно закрыть форточки
+                    LCD_Backlight(LCD_BL_ON);
                     sprintf(str1, "VENTILATION:");
                     sprintf(str2, "[S]: CLOSING");
                     lcd_clear();
@@ -182,6 +203,7 @@ while(1)
                     RelayCmd(6, RELAY_OFF);
                     RelayCmd(7, RELAY_OFF);
                     VentState = 0;
+                    LCD_Backlight(LCD_BL_OFF);
                 }
             }
             delay_ms(200);
@@ -198,6 +220,7 @@ void LogicStep(void)
         if(WaterVolume <= 20)
         {
             // ALARM - Нет воды в бочке!
+            LCD_Backlight(LCD_BL_ON);
             sprintf(str1, "WATERING:");
             sprintf(str2, "[S]: NO WATER!");
             lcd_clear();
@@ -205,6 +228,8 @@ void LogicStep(void)
             lcd_puts(str1);
             lcd_gotoxy(0, 1);
             lcd_puts(str2);
+            delay_ms(1000);
+            LCD_Backlight(LCD_BL_OFF);
         }
         else
         {
@@ -212,6 +237,7 @@ void LogicStep(void)
             if(TimeStamp - WateringLastTS > WATERING_COOLDOWN)
             {
                 WateringLastTS = (long int)TimeStamp;
+                LCD_Backlight(LCD_BL_ON);
                 sprintf(str1, "WATERING:");
                 sprintf(str2, "[S]: PROCESS");
                 lcd_clear();
@@ -222,6 +248,7 @@ void LogicStep(void)
                 RelayCmd(1, RELAY_ON);
                 delay_ms(15000);
                 RelayCmd(1, RELAY_OFF);
+                LCD_Backlight(LCD_BL_OFF);
             }
         }    
     }
@@ -231,6 +258,7 @@ void LogicStep(void)
         if(TimeStamp - VentLastTS > VENT_COOLDOWN && VentState == 0)
         {
             VentLastTS = (long int)TimeStamp;
+            LCD_Backlight(LCD_BL_ON);
             sprintf(str1, "VENTILATION:");
             sprintf(str2, "[S]: OPENING");
             lcd_clear();
@@ -247,13 +275,15 @@ void LogicStep(void)
             delay_ms(15000);
             RelayCmd(5, RELAY_OFF);
             VentState = 1;
+            LCD_Backlight(LCD_BL_OFF);
         }
     }
     if(TempInt < TempIntThrLow)
     {    
         // Закрыть форточки
         if(VentState == 1)
-        {    
+        {
+            LCD_Backlight(LCD_BL_ON);    
             sprintf(str1, "VENTILATION:");
             sprintf(str2, "[S]: CLOSING");
             lcd_clear();
@@ -278,6 +308,7 @@ void LogicStep(void)
             RelayCmd(6, RELAY_OFF);
             RelayCmd(7, RELAY_OFF);
             VentState = 0;
+            LCD_Backlight(LCD_BL_OFF);
         }
     }
 }
@@ -519,14 +550,41 @@ interrupt [TIM0_OVF] void timer0_ovf_isr(void)
 
 int TimestampToTime(long int TS, char *ptrStr)
 {
-    long int hour, min, sec;
+    int hour, min, sec;
     if(TS > TIMERTICK_MAX_DAY_TS) return -1;
     else
     {
         hour = (TS/3600);
         min = (TS%3600)/60;
-        sec = TS - hour*3600 - min*60;
+        sec = (int)(TS - hour*3600 - min*60);
         sprintf(ptrStr, "%02d:%02d:%02d", hour, min, sec);
     }
     return 0;
+}
+
+long int TimeToTimestamp(char *ptrStr)
+{
+    long int TS;
+    int hour, min, sec;
+    char tmp[2];
+
+    strncpy(tmp, ptrStr+0, 2);
+    hour = atoi(tmp);
+    strncpy(tmp, ptrStr+3, 2);
+    min = atoi(tmp);
+    strncpy(tmp, ptrStr+6, 2);
+    sec = atoi(tmp);
+    TS = (long int) hour*3600 + min*60 + sec;
+    return TS;
+}
+
+int SyncTime(void)
+{
+    int sts;
+    char tmp[16];
+    
+    sts = GSM_GetTime(tmp);
+    TimeStamp = TimeToTimestamp(tmp);
+    
+    return sts;
 }

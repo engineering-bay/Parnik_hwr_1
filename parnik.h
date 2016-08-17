@@ -1,14 +1,15 @@
 /* HW Config:
 Arduino pin     MCU pin         LCD pin     Func
-PWM5            PE3            --          LCD_BACKLIGHT
-PWM6            PH3            14          D7
-PWM7            PH4            13          D6
-PWM8            PH5            12          D5
+ADC3            PF3            --          LCD_BACKLIGHT
+PWM13           PB7            14          D7
+PWM13           PB6            13          D6
+PWM11           PB5            12          D5
 PWM10           PB4            11          D4
-PWM11           PB5            6           E
-PWM12           PB6            4           RS
+ADC1            PF1            6           E
+ADC2            PF2            4           RS
 
-PWM9            PH6            --          GSM_KEY
+PWM9            PH6            --          GSM_POWERKEY
+PWM6            PH3            --          GSM_RESET
 
 SCL             PD0            --          RS485_DIR
 
@@ -35,6 +36,9 @@ A14             PK6                        Keypad-3Col
 #define LCD_STATE_COMMON            0
 #define LCD_STATE_TH                1
 #define LCD_STATE_SW                2
+#define LCD_BL_ON                   1
+#define LCD_BL_OFF                  0
+#define LCD_BL_SWITCH               2
 
 #define SOILSENSOR_LOW              1023
 #define SOILSENSOR_HIGH             250
@@ -61,3 +65,11 @@ float GetUltrasonicDistance(void);
 void SendToRS485(char *ptr, int len);
 int KeyPressed(void);
 int TimestampToTime(long int TS, char *ptrStr);
+long int TimeToTimestamp(char *ptrStr);
+
+int SyncTime(void);
+
+void USART0_flush(void);
+void USART0_Transmit(unsigned char data);
+void USART1_Transmit(unsigned char data);
+void LCD_Backlight(int mode);

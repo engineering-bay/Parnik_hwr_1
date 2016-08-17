@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>6.1</ProjectVersion>
     <ToolchainName>com.HPInfoTech.CodeVisionAVR.C</ToolchainName>
-    <ProjectGuid>{4DAA0D34-423D-497C-A76A-A46C3F34E8A0}</ProjectGuid>
+    <ProjectGuid>{05C8352B-423D-497C-A76A-A46C3F34E8A0}</ProjectGuid>
     <avrdevice>ATmega2560</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
     <OutputType>Executable</OutputType>
@@ -43,6 +43,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="dht22.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="gsm.c">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
