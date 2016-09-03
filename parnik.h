@@ -68,8 +68,10 @@ int TimestampToTime(long int TS, char *ptrStr);
 long int TimeToTimestamp(char *ptrStr);
 
 int SyncTime(void);
+void ConfigureGSM(void);
 
 void USART0_flush(void);
 void USART0_Transmit(unsigned char data);
 void USART1_Transmit(unsigned char data);
 void LCD_Backlight(int mode);
+void MenuLoop(void);

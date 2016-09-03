@@ -2,14 +2,19 @@
 // Alphanumeric LCD functions
 #include <alcd.h>
 #include <delay.h>
+#include <stdio.h>
+#include <string.h>
 #include <parnik.h>
+#include <gsm.h>
 // Voltage Reference: AREF pin
 #define ADC_VREF_TYPE ((0<<REFS1) | (1<<REFS0) | (0<<ADLAR))
 
 // USART0 Receiver buffer
 #define RX_BUFFER_SIZE0 100
+
 char rx_buffer0[RX_BUFFER_SIZE0];
 int rx_index0;
+extern float GSM_Balance;
 
 void MCU_init(void)
 {
@@ -50,7 +55,7 @@ PORTC=(0<<PORTC7) | (0<<PORTC6) | (0<<PORTC5) | (0<<PORTC4) | (0<<PORTC3) | (0<<
 // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In 
 DDRD=(1<<DDD7) | (0<<DDD6) | (0<<DDD5) | (0<<DDD4) | (0<<DDD3) | (0<<DDD2) | (0<<DDD1) | (1<<DDD0);
 // State: Bit7=T Bit6=T Bit5=T Bit4=T Bit3=T Bit2=T Bit1=T Bit0=T 
-PORTD=(0<<PORTD7) | (0<<PORTD6) | (0<<PORTD5) | (0<<PORTD4) | (0<<PORTD3) | (0<<PORTD2) | (0<<PORTD1) | (0<<PORTD0);
+PORTD=(0<<PORTD7) | (0<<PORTD6) | (0<<PORTD5) | (0<<PORTD4) | (0<<PORTD3) | (0<<PORTD2) | (0<<PORTD1) | (1<<PORTD0);
 
 // Port E initialization
 // Function: Bit7=In Bit6=In Bit5=In Bit4=In Bit3=In Bit2=In Bit1=In Bit0=In 
@@ -385,8 +390,8 @@ UDR0 = data;
 
 void USART1_Transmit( char data )
 {
-while ( !( UCSR1A & (1<<UDRE1)) )
-;
+//while ( !( UCSR1A & (1<<UDRE1)) );
+delay_us(100);
 UDR1 = data;
 }
 
@@ -417,11 +422,65 @@ void LCD_Backlight(int mode)
 interrupt [USART0_RXC] void usart0_rx_isr(void)
 {
 char status,data;
-status=UCSR0A;
-data=UDR0;
+status = UCSR0A;
+data = UDR0;
+UDR1 = data;
 if ((status & (FRAMING_ERROR | PARITY_ERROR | DATA_OVERRUN))==0)
    {
    rx_buffer0[rx_index0++]=data;
    if (rx_index0 == RX_BUFFER_SIZE0) rx_index0 = (RX_BUFFER_SIZE0 - 1);
    }
+}
+
+void ConfigureGSM(void)
+{
+    int i;
+    char str1[16], str2[16];
+    lcd_clear();
+    lcd_gotoxy(0,0);
+    lcd_puts("GSM PowerON  [1]");
+    GSM_PowerOn();
+    // Ждем пока модем очухается
+    delay_ms(5000);
+    // Задаем скорость обмена 19200
+    lcd_clear();
+    lcd_gotoxy(0,0);
+    lcd_puts("GSM baudrate [2]");
+    GSM_SendATCommand("AT+IPR=19200\r\n");
+    i = GSM_ReadAnswer(str2, 16, 50);
+    delay_ms(500);
+    // Выключаем эхо
+    lcd_clear();
+    lcd_gotoxy(0,0);
+    lcd_puts("GSM echo OFF [3]");
+    GSM_SendATCommand("ATE0\r\n");
+    i = GSM_ReadAnswer(str2, 16, 50);
+    delay_ms(500);
+    GSM_SendATCommand("AT+CPBS=\"SM\"\r\n");
+    delay_ms(200);
+    //GSM_SendATCommand("AT+CNMI=1,2,2,1,0\r\n");
+    //delay_ms(100);
+    // Удаляем все СМС
+    /*lcd_clear();
+    lcd_gotoxy(0,0);
+    lcd_puts("GSM SMS del. [4]");
+    //lcd_gotoxy(0,1);
+    //lcd_puts(str2);
+    GSM_SendATCommand("AT+CMGD=1,4\r\n");
+    //i = GSM_ReadAnswer(str2, 16);
+    delay_ms(500);*/
+    // Проверяем баланс
+    lcd_clear();
+    lcd_gotoxy(0,0);
+    lcd_puts("GSM balance  [5]");
+    delay_ms(500);
+    i = GSM_GetBalance(&GSM_Balance);
+    if(i == 0) sprintf(str2, "%.2f RUB", GSM_Balance);
+    else sprintf(str2, "ERROR: [%d]", i);
+    lcd_gotoxy(0,1);
+    lcd_puts(str2);
+    delay_ms(500);
+    //GSM_ReadSMS(1, str2);
+    //GSM_SendSMS("+7??????????","Power ON!");
+    //GSM_SetTime(16,8,20,15,0,0);
 }

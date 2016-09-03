@@ -21,14 +21,14 @@ int TimerSyncFlag = 0, VentState = 0;
 long int VentLastTS = 0, WateringLastTS = 0;
 float WaterTankDiameterSM = 50.0, WaterTankHeightEmptySM = 100.0;
 float TempIntThrLow = 22.0, TempIntThrHigh = 35.0, SoilHumThrLow = 40.0;
-float HumInt = 0.0, TempInt = -99.9, HumExt = 0.0, TempExt = -99.9, SoilHum = 0.0, WaterVolume = 0.0;
+float HumInt = 0.0, TempInt = -99.9, HumExt = 0.0, TempExt = -99.9, SoilHum = 0.0, WaterVolume = 0.0, GSM_Balance = 0.0;
 // Cicle buffers
 float Water[WINDOW_SIZE];
 float Soil[WINDOW_SIZE];
 
 void main(void)
 {
-int i, t, n, tmp1, tmp2, key;
+int i, sts, t, n, tmp1, tmp2, key;
 unsigned int adc_res;
 float tw, ts;
 float WaterTankHeightSM = WaterTankHeightEmptySM;
@@ -45,17 +45,16 @@ RelayCmd(8, RELAY_ON);
 delay_ms(1000);
 RelayCmd(8, RELAY_OFF);
 
-GSM_PowerOn();
-lcd_clear();
-delay_ms(5000);
-// Задаем скорость обмена 19200
-GSM_SendATCommand("AT+IPR=19200\r\n");
-i = GSM_ReadAnswer(str2, 16);
-// Выключаем эхо
-GSM_SendATCommand("ATE0\r\n");
-i = GSM_ReadAnswer(str2, 16);
-
+ConfigureGSM();
+// Синхронизируем время с модемом
 SyncTime();
+TimestampToTime((long int) TimeStamp, str2);
+/*lcd_clear();
+lcd_gotoxy(0, 0);
+lcd_puts("GSM Time");
+lcd_gotoxy(0, 1);
+lcd_puts(str2);
+delay_ms(2000);*/
 
 n = 0;
 while(1)
@@ -84,7 +83,7 @@ while(1)
         {
             case LCD_STATE_COMMON:
             {
-                sprintf(str1, "  Parnik  2016");
+                sprintf(str1, "Parnik HWR 1.0");
                 TimestampToTime((long int) TimeStamp, str2);
                 //sprintf(str2, "%.2f", TimeStamp);
                 lcd_clear();
@@ -114,8 +113,8 @@ while(1)
                 lcd_puts(str2);
             }break;
         }
-        sprintf(str485, "Ti[%5.1f],Hi[%4.1f],Te[%5.1f],He[%4.1f]\r\n", TempInt, HumInt, TempExt, HumExt);
-        SendToRS485(str485, strlen(str485));
+        /*sprintf(str485, "Ti[%5.1f],Hi[%4.1f],Te[%5.1f],He[%4.1f]\r\n", TempInt, HumInt, TempExt, HumExt);
+        SendToRS485(str485, strlen(str485));*/
         n++;
         if(n > LCD_STATE_NUM) n = 0;
         LogicStep();
@@ -128,7 +127,7 @@ while(1)
                 if(key == 10) 
                 {
                     // Enter menu
-                    //
+                    MenuLoop();
                 } 
                 if(key == 11) 
                 {
@@ -213,13 +212,16 @@ while(1)
 
 void LogicStep(void)
 {
-    char str1[16], str2[16];
+    int t;
+    float tw = 0.0, WaterTankHeightSM;
+    char tmp[200], str1[16], str2[16];
     if(SoilHum < SoilHumThrLow)
     {
         // Необходим полив
         if(WaterVolume <= 20)
         {
             // ALARM - Нет воды в бочке!
+            WateringLastTS = (long int)TimeStamp;
             LCD_Backlight(LCD_BL_ON);
             sprintf(str1, "WATERING:");
             sprintf(str2, "[S]: NO WATER!");
@@ -230,6 +232,7 @@ void LogicStep(void)
             lcd_puts(str2);
             delay_ms(1000);
             LCD_Backlight(LCD_BL_OFF);
+            GSM_SendSMS("+7??????????", "ERROR: Low water!");
         }
         else
         {
@@ -246,9 +249,18 @@ void LogicStep(void)
                 lcd_gotoxy(0, 1);
                 lcd_puts(str2);
                 RelayCmd(1, RELAY_ON);
-                delay_ms(15000);
+                delay_ms(20000);
                 RelayCmd(1, RELAY_OFF);
                 LCD_Backlight(LCD_BL_OFF);
+                for(t = 0; t < WINDOW_SIZE; t++)
+                {
+                    Water[t] = GetUltrasonicDistance();
+                    tw += Water[t];    
+                }
+                WaterTankHeightSM = tw/WINDOW_SIZE;
+                WaterVolume = (WaterTankHeightEmptySM - WaterTankHeightSM)*PI*pow(WaterTankDiameterSM, 2)/4000;
+                sprintf(tmp, "Watering OK! Water volume: [%.1f]", WaterVolume);
+                GSM_SendSMS("+7??????????", tmp);
             }
         }    
     }
@@ -276,6 +288,8 @@ void LogicStep(void)
             RelayCmd(5, RELAY_OFF);
             VentState = 1;
             LCD_Backlight(LCD_BL_OFF);
+            sprintf(tmp, "Ventilating START! Temp inside: [%.1f] Hum inside: [%.1f]", TempInt, HumInt);
+            GSM_SendSMS("+7??????????", tmp);
         }
     }
     if(TempInt < TempIntThrLow)
@@ -309,6 +323,8 @@ void LogicStep(void)
             RelayCmd(7, RELAY_OFF);
             VentState = 0;
             LCD_Backlight(LCD_BL_OFF);
+            sprintf(tmp, "Ventilating DONE! Temp inside: [%.1f] Hum inside: [%.1f]", TempInt, HumInt);
+            GSM_SendSMS("+7??????????", tmp);
         }
     }
 }
